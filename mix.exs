@@ -1,16 +1,20 @@
 defmodule Uro.MixProject do
   use Mix.Project
 
+  @app :uro
+
   def project do
     [
-      app: :uro,
+      app: @app,
       version: "0.1.0",
-      elixir: "~> 1.11.4",
+      elixir: "~> 1.12.3",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:phoenix_swagger],
+      compilers: [:phoenix, :gettext] ++ Mix.compilers() ++ [:phoenix_swagger],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      releases: [{@app, release()}],
+      preferred_cli_env: [release: :prod]
     ]
   end
 
@@ -39,7 +43,6 @@ defmodule Uro.MixProject do
       # source SQL: # LOCK TABLE \"schema_migrations\" IN SHARE UPDATE EXCLUSIVE MODE\n^"
       {:phoenix_ecto, "~> 4.2.1"},
       {:ecto_sql, "~> 3.5.3"},
-
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 2.14 "},
       {:phoenix_live_reload, "~> 1.3", only: :dev},
@@ -61,6 +64,7 @@ defmodule Uro.MixProject do
       {:swoosh, "~> 1.3"},
       {:hammer, "~> 6.0"},
       {:scrivener_ecto, "~> 2.7"},
+      {:bakeware, "~> 0.2.0"}
     ]
   end
 
@@ -75,6 +79,17 @@ defmodule Uro.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate", "test"]
+    ]
+  end
+
+  def release do
+    [
+      bakeware: [
+        compression_level: 6,
+      ],
+      steps: [:assemble, &Bakeware.assemble/1],
+      strip_beams: Mix.env() == :prod,
+      overwrite: true
     ]
   end
 end
